@@ -11,8 +11,30 @@ Status: **predlog za odobrenje**. Ništa se ne pravi dok se plan ne potvrdi.
 | Jezik | Samo srpski (latinica). Austrija kasnije kao zaseban domen i prevod |
 | Plaćanje u prvoj verziji | Avans preko IPS QR koda i uplate na račun, ili plaćanje pri preuzimanju. Kartice kasnije |
 | Prodaja | Bez intervjua. Pravi se osnovna verzija i nudi se „na hladno" preko Instagrama |
+| Domen (test faza) | `proba.sbs` je jednostavan admin dashboard za vlasnika platforme. Svaka poslastičarnica dobija poddomen, npr. `test.proba.sbs` |
+| Prvi klijent | Izmišljena poslastičarnica na `test.proba.sbs`, na kojoj se sve gradi i testira |
 
 **Posledica hladne prodaje:** demo je glavni prodajni alat. Za svaku poslastičarnicu kojoj pišete treba za par minuta da napravite **njen demo**: njeno ime, logo, boje i nekoliko torti. Onda u poruci pošaljete link: „Napravio sam vam stranicu za porudžbine, probajte". To je mnogo jače od opisa aplikacije.
+
+## 1a. Domeni i poddomeni
+
+```
+proba.sbs              → admin dashboard za vas (poslastičarnice, demo, AI potrošnja)
+test.proba.sbs         → izmišljena test poslastičarnica (kupac)
+test.proba.sbs/admin   → admin panel te poslastičarnice
+ime.proba.sbs          → svaki sledeći klijent, isto
+```
+
+**Jedan kod, jedna baza, za sve.** Aplikacija pročita poddomen iz adrese i učita odgovarajuću poslastičarnicu. Prilagođavanje klijentu (ime, logo, boje, katalog, cene, tehnike) čuva se u bazi, ne u kodu. Zato je „serijska proizvodnja" samo novi red u bazi, napravljen kroz vaš dashboard.
+
+Dva načina da poddomen stigne do aplikacije na hostingu:
+
+1. **Wildcard poddomen `*.proba.sbs` (preporuka):** jednom se podesi DNS i hosting da svi poddomeni idu u isti folder. Novi klijent se pravi samo u dashboardu, bez diranja hostinga. Potreban je i wildcard SSL sertifikat, koji cPanel AutoSSL daje ako je DNS na istom hostingu.
+2. **Ručno po klijentu:** u cPanelu se doda poddomen koji pokazuje na isti folder. Radi svuda, ali je jedan korak više po klijentu.
+
+Kod radi isto u oba slučaja, pa se odluka može doneti kad se zna koji je hosting.
+
+Kasnije klijent može da poveže i svoj domen (npr. `porudzbine.slatkikutak.rs`). Aplikacija će ga prepoznati na isti način.
 
 ## 2. Uloge
 
@@ -77,7 +99,9 @@ AI nikad ne crta zaštićene likove (Disney, Paw Patrol, Marvel...). Pravi „te
 - Baza kupaca i podsetnik „rođendan je za mesec dana" (uz pristanak kupca).
 - Statistika: broj porudžbina, promet, najpopularniji ukusi.
 
-## 6. Superadmin (vi)
+## 6. Superadmin (vi), na `proba.sbs`
+
+Namerno jednostavan:
 - Brzo pravljenje poslastičarnice ili demoa: ime, slug (link), logo, boje, šablon kataloga („tipična srpska poslastičarnica": veličine, ukusi, kolači sa okvirnim cenama), koji se posle samo menja.
 - Pregled svih poslastičarnica: status (demo / probni period / aktivna / ugašena), broj porudžbina, AI potrošnja.
 - Uključivanje i isključivanje AI-a i limita po poslastičarnici.
@@ -114,7 +138,9 @@ AI nikad ne crta zaštićene likove (Disney, Paw Patrol, Marvel...). Pravi „te
 | Faza | Sadržaj | Cilj |
 |---|---|---|
 | **0. Test AI-a** | Skripta: 10 tipičnih motiva kroz Claude i 2–3 servisa za slike, poređenje slika i cene | Odluka koji servis, i dokaz da su dizajni „napravljivi" |
-| **1. MVP** | Tok kupca (torte i kolači), AI dizajn, admin poslastičara, superadmin sa brzim demoom, email obaveštenja, IPS QR | Prvi demo linkovi za hladnu prodaju |
+| **1a. test.proba.sbs** | Izmišljena poslastičarnica: tok kupca (torte i kolači), AI dizajn, admin poslastičara, email obaveštenja, IPS QR. Plus jednostavan dashboard na `proba.sbs` | Sve radi i testirano je na jednom primeru |
+| **1b. Prvi pravi klijent** | Na konkretnom primeru: novi poddomen, prilagođavanje (logo, boje, katalog, tehnike) | Vidimo šta fali i šta se ponavlja |
+| **1c. Serijska proizvodnja** | Šabloni kataloga, pravljenje demoa u par klikova, uputstvo za podešavanje poddomena | Demo za novog klijenta za 5 minuta |
 | **2. Rast** | Spisak za proizvodnju, obaveštenja kupcu, baza kupaca i podsetnici, statistika, upload referentne slike kupca | Zadržavanje klijenata |
 | **3. Plaćanje i Austrija** | Kartice (npr. Monri), pretplata poslastičara, nemački prevod i zaseban domen | Širenje |
 
@@ -137,6 +163,6 @@ AI nikad ne crta zaštićene likove (Disney, Paw Patrol, Marvel...). Pravi „te
 
 ## 12. Otvorena pitanja
 
-1. Naziv platforme i domen?
-2. Koji hosting (ili da li ga već imate)?
+1. ~~Naziv platforme i domen?~~ Za test fazu: `proba.sbs`.
+2. Koji hosting? Da li podržava wildcard poddomene (`*.proba.sbs`)?
 3. Da li odmah otvarate API naloge (Anthropic i servis za slike) za fazu 0?
