@@ -253,7 +253,8 @@ final class DesignService
     {
         try {
             return $provider->generate($design, $request);
-        } catch (\Throwable $first) {
+        } catch (ContentRefusedException $first) {
+            // Samo odbijen sadržaj vredi probati ponovo; limit, ključ ili mreža bi pukli isto.
             if (empty($request['characters'])) {
                 throw $first;
             }

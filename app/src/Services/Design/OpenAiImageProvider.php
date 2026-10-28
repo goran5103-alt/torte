@@ -49,6 +49,10 @@ final class OpenAiImageProvider implements ImageProvider
         $data = json_decode((string)$body, true);
         if ($status !== 200 || empty($data['data'][0]['b64_json'])) {
             $msg = $data['error']['message'] ?? ('HTTP ' . $status);
+            $code = (string)($data['error']['code'] ?? '');
+            if (in_array($code, ['moderation_blocked', 'content_policy_violation'], true)) {
+                throw new ContentRefusedException('Servis za slike: ' . $msg);
+            }
             throw new \RuntimeException('Servis za slike: ' . $msg);
         }
         return [

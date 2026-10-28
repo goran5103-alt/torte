@@ -66,6 +66,6 @@ final class GeminiImageProvider implements ImageProvider
         }
         // Bez slike: najčešće je zahtev blokiran (npr. zaštićen lik).
         $reason = $data['candidates'][0]['finishReason'] ?? ($data['promptFeedback']['blockReason'] ?? 'bez slike u odgovoru');
-        throw new \RuntimeException('Gemini nije vratio sliku: ' . $reason);
+        throw new ContentRefusedException('Gemini nije vratio sliku: ' . $reason);
     }
 }
