@@ -14,7 +14,7 @@ final class PromptBuilder
         $parts = [
             'Photorealistic product photo of a real handmade celebration cake made by a small local pastry shop.',
             self::structure($request),
-            isset(DesignTemplates::ALL[$design['template'] ?? '']) ? 'Composition: ' . DesignTemplates::ALL[$design['template']][1] . '.' : '',
+            DesignTemplates::composition((string)($design['template'] ?? '')) ? 'Composition: ' . DesignTemplates::composition((string)$design['template']) . '.' : '',
             rtrim(trim((string)($generic ? ($design['image_prompt_generic'] ?? $design['image_prompt']) : $design['image_prompt'])), '.') . '.',
         ];
         $inscription = trim((string)($request['inscription'] ?? ''));

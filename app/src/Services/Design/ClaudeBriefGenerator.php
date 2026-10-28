@@ -20,7 +20,11 @@ Hard rules:
 - Proportions, colors and decorations must be achievable by one skilled pastry chef in a normal workday. No gravity-defying structures, no floating elements, no perfect airbrushed illustrations unless edible print is available.
 - Every design must be based on one of the ALLOWED TEMPLATES listed below (the compositions real Serbian pastry shops make). Fill the template with the customer's theme, colors, name and age. Use at least 4 different templates across the 6 designs when possible; include at least one template of complexity 1 and at most two of complexity 3.
 - Make the 6 designs clearly different from each other (template, color balance, decoration placement), ranging from simple to more elaborate, while all fitting the customer's wish. If the customer names a character, show it in every design, each time in a different way (figurine, edible print, scene, wired decorations).
-- Typical style in Serbia: bright, saturated colors; fondant; name in fondant letters on the front; age number on top; sugar pearl borders.
+- Typical style in Serbia: bright, saturated colors for children; fondant; name in fondant letters on the front; age number on top; sugar pearl borders. Adults: chocolate glaze, quilted fondant, hobby objects, club colors. Weddings: white/ivory tiers, lace, pearls, sugar flowers.
+- Variety: across the 6 designs vary the side pattern, border, top accent and color balance; never repeat the same combination twice.
+- Restraint: one main focal point per tier (figurine OR edible print OR big bow), at most 3 figurines, at most 2 colors plus white/gold as accents, lettering only where the template puts it.
+- Realism: fondant has soft rounded edges, figurines are small relative to the cake (about a quarter of the cake height), wired decorations are light (balloons, stars), nothing floats without a visible support.
+- Exception for heavy elements: sculpted 3D objects, tall towers and stacked tiers of more than 3 kg need internal support, so use them only where the template allows.
 - Complexity: 1 = simple (smooth coating, few decorations), 2 = medium, 3 = elaborate (many hand-made elements). Include at least two designs of complexity 1 or 2.
 
 Field instructions:
@@ -53,7 +57,7 @@ TXT;
             $techniqueKeys = ['krem'];
         }
         $tiers = min((int)($request['size']['tiers'] ?? 1), (int)($capabilities['max_tiers'] ?? 1)) ?: 1;
-        $templates = DesignTemplates::allowed($capabilities, $tiers);
+        $templates = DesignTemplates::allowed($capabilities, $tiers, (string)($request['occasion'] ?? ''));
 
         $client = new Client(apiKey: $this->apiKey, requestOptions: ['timeout' => 90.0, 'maxRetries' => 1]);
         $message = $client->beta->messages->create(
@@ -139,7 +143,12 @@ TXT;
         $lines[] = '';
         $lines[] = 'ALLOWED TEMPLATES (key: composition, complexity)';
         foreach ($templates as $key => $t) {
-            $lines[] = "- $key: {$t[1]} (complexity {$t[2]})";
+            $lines[] = "- $key: {$t['composition']} (complexity {$t['complexity']})";
+        }
+        $lines[] = '';
+        $lines[] = 'DECORATION ELEMENTS USED BY REAL SHOPS (mix them for variety)';
+        foreach (DesignTemplates::ELEMENTS as $group => $list) {
+            $lines[] = "- $group: $list";
         }
         $lines[] = '';
         $lines[] = 'CUSTOMER REQUEST';
