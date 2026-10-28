@@ -34,6 +34,23 @@
         });
     }
 
+    // Katalog: oznaka cene prati izbor kg/komad, a dugme za sliku pokazuje da je fajl izabran
+    document.querySelectorAll('[data-unit-select]').forEach(function (sel) {
+        sel.addEventListener('change', function () {
+            var label = sel.closest('form').querySelector('[data-unit-label]');
+            if (label) label.textContent = sel.value === 'kom' ? 'po komadu' : 'po kg';
+        });
+    });
+    document.querySelectorAll('.file-btn input[type=file]').forEach(function (input) {
+        input.addEventListener('change', function () {
+            var btn = input.closest('.file-btn');
+            if (input.files.length) {
+                btn.classList.add('chosen');
+                btn.firstChild.textContent = '✓ ' + input.files[0].name.slice(0, 18) + ' ';
+            }
+        });
+    });
+
     // Klik na red tabele otvara link: <tr data-href="...">
     document.querySelectorAll('tr[data-href]').forEach(function (row) {
         row.classList.add('clickable');

@@ -32,7 +32,7 @@ final class OpenAiImageProvider implements ImageProvider
             ],
             CURLOPT_POSTFIELDS => json_encode([
                 'model' => $this->model,
-                'prompt' => PromptBuilder::imagePrompt($design, $request),
+                'prompt' => PromptBuilder::imagePrompt($design, $request, !empty($request['generic'])),
                 'size' => '1024x1024',
                 'quality' => $this->quality,
                 'n' => 1,

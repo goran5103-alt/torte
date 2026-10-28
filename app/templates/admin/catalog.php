@@ -58,27 +58,43 @@ $deleteForm = fn(string $type, int $id) => '<button class="btn btn-small" formac
             <form method="post" action="/admin/katalog/kolaci" class="form catalog-row products" enctype="multipart/form-data">
                 <?= csrf_field() ?>
                 <input type="hidden" name="id" value="<?= (int)($pr['id'] ?? 0) ?>">
-                <label>Naziv <input name="name" value="<?= e($pr['name'] ?? '') ?>" placeholder="<?= $pr ? '' : 'Novi proizvod' ?>" required></label>
-                <label>Opis <input name="description" value="<?= e($pr['description'] ?? '') ?>"></label>
-                <label>Jedinica
-                    <select name="unit">
-                        <option value="kg" <?= ($pr['unit'] ?? 'kg') === 'kg' ? 'selected' : '' ?>>kg</option>
-                        <option value="kom" <?= ($pr['unit'] ?? '') === 'kom' ? 'selected' : '' ?>>kom</option>
-                    </select>
-                </label>
-                <label>Cena (<?= e($cur) ?>) <input type="number" step="10" min="0" name="price" value="<?= e($pr ? (float)$pr['price'] : '') ?>" required></label>
-                <label>Min. <input type="number" step="0.5" min="0.1" name="min_qty" value="<?= e($pr ? (float)$pr['min_qty'] : 1) ?>"></label>
-                <label>Korak <input type="number" step="0.5" min="0.1" name="step" value="<?= e($pr ? (float)$pr['step'] : 1) ?>"></label>
-                <label>Red. <input type="number" name="sort" value="<?= e($pr['sort'] ?? 0) ?>"></label>
-                <div class="row-actions">
-                    <label class="check"><input type="checkbox" name="active" <?= !$pr || $pr['active'] ? 'checked' : '' ?>> aktivno</label>
-                    <button class="btn btn-small btn-primary"><?= $pr ? 'Sačuvaj' : 'Dodaj' ?></button>
-                    <?= $pr ? $deleteForm('kolaci', (int)$pr['id']) : '' ?>
+                <div class="product-thumb">
+                    <?php if (!empty($pr['image_path'])): ?>
+                        <img src="<?= e(upload_url($pr['image_path'])) ?>" alt="">
+                    <?php else: ?>
+                        <span>bez slike</span>
+                    <?php endif; ?>
+                    <label class="file-btn">📷 <?= !empty($pr['image_path']) ? 'Promeni' : 'Dodaj sliku' ?>
+                        <input type="file" name="image" accept="image/jpeg,image/png,image/webp" hidden>
+                    </label>
                 </div>
-                <label style="grid-column:1/-1">Alergeni <input name="allergens" value="<?= e($pr['allergens'] ?? '') ?>"></label>
-                <label style="grid-column:1/-1">Slika (opciono) <input type="file" name="image" accept="image/jpeg,image/png,image/webp">
-                    <?php if (!empty($pr['image_path'])): ?><small>Trenutna: <a href="<?= e(upload_url($pr['image_path'])) ?>" target="_blank">pogledaj</a></small><?php endif; ?>
-                </label>
+                <div class="product-fields">
+                    <div class="grid-2">
+                        <label>Naziv <input name="name" value="<?= e($pr['name'] ?? '') ?>" placeholder="<?= $pr ? '' : 'Novi kolač' ?>" required></label>
+                        <label>Opis <input name="description" value="<?= e($pr['description'] ?? '') ?>"></label>
+                    </div>
+                    <div class="grid-4">
+                        <label>Prodaje se
+                            <select name="unit" data-unit-select>
+                                <option value="kg" <?= ($pr['unit'] ?? 'kg') === 'kg' ? 'selected' : '' ?>>na kilogram</option>
+                                <option value="kom" <?= ($pr['unit'] ?? '') === 'kom' ? 'selected' : '' ?>>na komad</option>
+                            </select>
+                        </label>
+                        <label>Cena (<?= e($cur) ?>) <span data-unit-label><?= ($pr['unit'] ?? 'kg') === 'kom' ? 'po komadu' : 'po kg' ?></span>
+                            <input type="number" step="10" min="0" name="price" value="<?= e($pr ? (float)$pr['price'] : '') ?>" required></label>
+                        <label>Najmanja količina <input type="number" step="0.1" min="0.1" name="min_qty" value="<?= e($pr ? (float)$pr['min_qty'] : 1) ?>"></label>
+                        <label>Dugme +/− dodaje <input type="number" step="0.1" min="0.1" name="step" value="<?= e($pr ? (float)$pr['step'] : 1) ?>"></label>
+                    </div>
+                    <div class="grid-2">
+                        <label>Alergeni <input name="allergens" value="<?= e($pr['allergens'] ?? '') ?>"></label>
+                        <label>Redosled <input type="number" name="sort" value="<?= e($pr['sort'] ?? 0) ?>"></label>
+                    </div>
+                    <div class="row-actions">
+                        <label class="check"><input type="checkbox" name="active" <?= !$pr || $pr['active'] ? 'checked' : '' ?>> prikazano kupcima</label>
+                        <button class="btn btn-small btn-primary"><?= $pr ? 'Sačuvaj' : 'Dodaj' ?></button>
+                        <?= $pr ? $deleteForm('kolaci', (int)$pr['id']) : '' ?>
+                    </div>
+                </div>
             </form>
         <?php endforeach; ?>
     </div>

@@ -59,7 +59,11 @@
             d.classList.toggle('done', n < state.step);
         });
         $('[data-back]').hidden = state.step === 1;
-        $('[data-next]').textContent = state.step === 4 ? 'Dodaj u porudžbinu' : 'Dalje';
+        // Dalje je aktivno tek kad je korak završen; dugme kaže šta još treba uraditi.
+        var next = $('[data-next]');
+        var missing = state.step < 4 ? nextLabel(state.step) : null;
+        next.disabled = !!missing || submitting;
+        next.textContent = state.step === 4 ? 'Dodaj u porudžbinu' : (missing || 'Dalje →');
 
         var base = basePrice();
         $('[data-estimate]').innerHTML = base === null ? '' :
@@ -246,6 +250,19 @@
             '</dl>';
     }
 
+    var submitting = false;
+
+    function nextLabel(step) {
+        if (step === 1 && !state.sizeId) return 'Izaberite veličinu';
+        if (step === 2 && !state.flavorId) return 'Izaberite ukus';
+        if (step === 3) {
+            if (state.mode === 'ai') return state.ai.token ? (state.ai.selected === null ? 'Izaberite predlog' : null) : 'Napravite predloge';
+            if (state.mode === 'galerija' && !state.galleryId) return 'Izaberite tortu';
+            if (state.mode === 'opis' && $('[name=description]').value.trim().length < 3) return 'Opišite tortu';
+        }
+        return null;
+    }
+
     function validate(step) {
         if (step === 1 && !state.sizeId) return 'Izaberite veličinu.';
         if (step === 2 && !state.flavorId) return 'Izaberite ukus.';
@@ -261,6 +278,7 @@
 
     function submit() {
         var btn = $('[data-next]');
+        submitting = true;
         btn.disabled = true;
         post('/korpa/torta', {
             size_id: state.sizeId,
@@ -276,12 +294,14 @@
             note: $('[name=note]').value.trim()
         }).then(function (res) {
             if (res.error) {
+                submitting = false;
                 btn.disabled = false;
                 showError(res.error);
                 return;
             }
             window.location = res.redirect || '/korpa';
         }).catch(function () {
+            submitting = false;
             btn.disabled = false;
             showError('Veza je prekinuta. Pokušajte ponovo.');
         });
@@ -308,6 +328,9 @@
     });
     $$('[data-gallery]').forEach(function (b) {
         b.addEventListener('click', function () { state.galleryId = +b.getAttribute('data-gallery'); showError(''); render(); });
+    });
+    $('[name=description]').addEventListener('input', function () {
+        if (state.mode === 'opis') render();
     });
     var gen = $('[data-generate]');
     if (gen) gen.addEventListener('click', generate);

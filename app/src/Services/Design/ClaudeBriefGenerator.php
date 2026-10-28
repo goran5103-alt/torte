@@ -15,8 +15,8 @@ You are an experienced cake designer working for a small Serbian pastry shop. A 
 Hard rules:
 - Use only the decorating techniques the shop lists as available. Never rely on a technique that is not listed.
 - If the shop does not make figurines, use no modeled figures at all. If it makes only simple figurines, keep any figures small and simple (stars, hearts, balloons, simple shapes).
-- Never exceed the shop's maximum number of tiers or the tier count of the chosen size.
-- Never depict copyrighted or trademarked characters, logos or brands (Disney, Pixar, Marvel, Paw Patrol, football club crests, etc.). If the customer asks for one, translate it into a generic theme with matching colors, shapes and mood (e.g. "Elsa" becomes "an icy winter princess theme in pale blue, white and silver with snowflakes").
+- Every design must have EXACTLY the number of tiers given for the chosen size (a small cake of 1.5 kg cannot become a two-tier cake), and the stated shape. State the tier count explicitly at the start of each image_prompt.
+- Characters: follow the shop's character rule given in SHOP CAPABILITIES. Never add brand logos or club crests the customer did not ask for.
 - Proportions, colors and decorations must be achievable by one skilled pastry chef in a normal workday. No gravity-defying structures, no floating elements, no perfect airbrushed illustrations unless edible print is available.
 - Make the 6 designs clearly different from each other (style, color balance, decoration placement), ranging from simple to more elaborate, while all fitting the customer's wish.
 - Complexity: 1 = simple (smooth coating, few decorations), 2 = medium, 3 = elaborate (many hand-made elements). Include at least two designs of complexity 1 or 2.
@@ -26,6 +26,7 @@ Field instructions:
 - description: 1–2 sentences in Serbian (Latin script) for the customer, describing what the cake will look like.
 - techniques: keys of the shop techniques used.
 - image_prompt: detailed English description of the cake only (shape, tiers, coating, colors, decorations and their placement, any inscription), for a photorealistic image generator. Do not describe the background.
+- image_prompt_generic: the same design, but with any named character, brand or logo replaced by generic theme elements (colors, shapes, symbols). Used if the image generator refuses the first prompt.
 TXT;
 
     public function __construct(
@@ -90,6 +91,7 @@ TXT;
                 'techniques' => array_values(array_intersect($techniqueKeys, (array)($d['techniques'] ?? []))),
                 'complexity' => max(1, min(3, (int)($d['complexity'] ?? 2))),
                 'image_prompt' => (string)$d['image_prompt'],
+                'image_prompt_generic' => (string)($d['image_prompt_generic'] ?? $d['image_prompt']),
             ], array_slice($designs, 0, 6)),
             'usage' => [
                 'input_tokens' => $in,
@@ -118,20 +120,27 @@ TXT;
             'Figurines: ' . $figurines,
             'Maximum tiers: ' . (int)($capabilities['max_tiers'] ?? 1),
         ];
+        if (!empty($capabilities['characters'])) {
+            $lines[] = 'Character rule: characters ALLOWED. If the customer names a character (cartoon, movie, superhero, game), make it clearly recognizable on the cake'
+                . ' using the shop\'s techniques: edible printed image, printed topper, or a modeled figurine if figurines are available. Keep its official colors.';
+        } else {
+            $lines[] = 'Character rule: characters NOT allowed. Never depict named characters, logos or brands; translate them into a generic theme'
+                . ' with matching colors, shapes and mood (e.g. "Elsa" becomes an icy winter princess theme in pale blue, white and silver).';
+        }
         if (!empty($capabilities['notes'])) {
             $lines[] = 'Notes from the pastry chef: ' . $capabilities['notes'];
         }
         $lines[] = '';
         $lines[] = 'CUSTOMER REQUEST';
         $lines[] = 'Occasion: ' . ($request['occasion_label'] ?? '');
-        $lines[] = sprintf('Size: %s, about %s kg, %d tier(s), %s shape', $size['name'] ?? '', $size['weight_kg'] ?? '', $tiers, ($size['shape'] ?? 'okrugla') === 'okrugla' ? 'round' : 'square');
+        $lines[] = sprintf('Size: %s, about %s kg, EXACTLY %d tier(s), %s shape', $size['name'] ?? '', $size['weight_kg'] ?? '', $tiers, ($size['shape'] ?? 'okrugla') === 'okrugla' ? 'round' : 'square');
         if (!empty($request['colors'])) {
             $lines[] = 'Preferred colors: ' . implode(', ', Palette::english($request['colors']));
         }
         if (($request['inscription'] ?? '') !== '') {
             $lines[] = 'Inscription on the cake (keep exactly, it is in Serbian): "' . $request['inscription'] . '"';
         }
-        $lines[] = 'Customer wish (in Serbian, may mention characters you must translate into a generic theme):';
+        $lines[] = 'Customer wish (in Serbian):';
         $lines[] = '"""' . ($request['description'] ?? '') . '"""';
         return implode("\n", $lines);
     }
@@ -151,8 +160,9 @@ TXT;
                             'techniques' => ['type' => 'array', 'items' => ['type' => 'string', 'enum' => $techniqueKeys]],
                             'complexity' => ['type' => 'integer', 'enum' => [1, 2, 3]],
                             'image_prompt' => ['type' => 'string'],
+                            'image_prompt_generic' => ['type' => 'string'],
                         ],
-                        'required' => ['title', 'description', 'techniques', 'complexity', 'image_prompt'],
+                        'required' => ['title', 'description', 'techniques', 'complexity', 'image_prompt', 'image_prompt_generic'],
                         'additionalProperties' => false,
                     ],
                 ],

@@ -96,6 +96,8 @@ final class Shop
             'techniques' => ['krem', 'fondan', 'drip', 'jestiva_slika', 'topper_papir', 'slatkisi'],
             'figurines' => 'simple',
             'max_tiers' => 2,
+            // Likovi iz crtaća i filmova (Betmen, Elsa...) na torti, kao jestiva slika, topper ili figurica
+            'characters' => true,
             'notes' => '',
         ],
         'design' => [

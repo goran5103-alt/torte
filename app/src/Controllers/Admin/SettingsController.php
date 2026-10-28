@@ -113,6 +113,7 @@ final class SettingsController extends BaseController
         $fig = input('figurines');
         $s['capabilities']['figurines'] = isset(Shop::FIGURINES[$fig]) ? $fig : 'none';
         $s['capabilities']['max_tiers'] = max(1, min(5, input_int('max_tiers', 2)));
+        $s['capabilities']['characters'] = isset($_POST['characters']);
         $s['capabilities']['notes'] = mb_substr(input('notes'), 0, 500);
         foreach ([1, 2, 3] as $level) {
             $s['design']['surcharge_' . $level] = max(0, input_float('surcharge_' . $level));

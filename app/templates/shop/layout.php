@@ -25,6 +25,11 @@ if ($instagram !== '' && !str_starts_with($instagram, 'http')) {
         <?php if ($logo): ?><img src="<?= e(upload_url($logo)) ?>" alt=""><?php endif; ?>
         <span><?= e($shop['name']) ?></span>
     </a>
+    <?php $path = request_path(); ?>
+    <nav class="shop-nav">
+        <a href="/torta" class="<?= $path === '/torta' ? 'active' : '' ?>">Torte</a>
+        <a href="/kolaci" class="<?= $path === '/kolaci' ? 'active' : '' ?>">Kolači</a>
+    </nav>
     <a class="cart-link" href="/korpa" aria-label="Korpa">
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M7 18a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm10 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4ZM5.2 4l.4 2H20a1 1 0 0 1 1 1.2l-1.4 7A2 2 0 0 1 17.6 16H8.1a2 2 0 0 1-2-1.6L4.1 3.8A1 1 0 0 0 3.1 3H2V1h1.1a3 3 0 0 1 3 2.4Z"/></svg>
         <?php if ($cartCount): ?><span class="count"><?= (int)$cartCount ?></span><?php endif; ?>
@@ -36,6 +41,9 @@ if ($instagram !== '' && !str_starts_with($instagram, 'http')) {
 <?php endif; ?>
 
 <main class="page">
+    <?php if ($path !== '/'): ?>
+        <a class="back-link" href="/">← Početna</a>
+    <?php endif; ?>
     <?php foreach (take_flashes() as $f): ?>
         <div class="notice notice-<?= e($f['type']) ?>"><?= e($f['message']) ?></div>
     <?php endforeach; ?>

@@ -94,6 +94,7 @@ final class DesignService
             'description' => $description,
             'colors' => Palette::clean((array)($input['colors'] ?? [])),
             'inscription' => $inscription,
+            'characters' => !empty($settings['capabilities']['characters']),
             'size' => [
                 'id' => (int)$size['id'],
                 'name' => $size['name'],
@@ -176,7 +177,16 @@ final class DesignService
 
         $provider = self::imageProvider();
         try {
-            $image = $provider->generate($design, $request);
+            try {
+                $image = $provider->generate($design, $request);
+            } catch (\Throwable $first) {
+                // Servis za slike ponekad odbije poznate likove; tada probamo istu tortu sa opštom temom.
+                if (empty($request['characters'])) {
+                    throw $first;
+                }
+                logger('Slika sa likom odbijena, pokušavam opštu temu', ['shop' => $shop['id'], 'error' => $first->getMessage()]);
+                $image = $provider->generate($design, ['generic' => true] + $request);
+            }
             $path = Uploads::saveBytes($image['bytes'], (int)$shop['id'], 'designs/' . date('Y-m'), $image['ext']);
         } catch (\Throwable $e) {
             logger('AI slika nije uspela', ['shop' => $shop['id'], 'session' => $session['id'], 'idx' => $idx, 'error' => $e->getMessage()]);

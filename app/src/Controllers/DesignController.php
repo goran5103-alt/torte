@@ -26,7 +26,8 @@ final class DesignController
 
     public function image(array $p): void
     {
-        @set_time_limit(150);
+        // Do dva pokušaja crtanja (lik, pa opšta tema ako servis odbije lik).
+        @set_time_limit(240);
         $clientKey = (string)$_SESSION['client_key'];
         session_write_close();
         $idx = (int)$p['idx'];

@@ -24,6 +24,10 @@ $cur = \App\Shop::currency();
             <?php foreach (\App\Shop::FIGURINES as $key => $label): ?>
                 <label class="check"><input type="radio" name="figurines" value="<?= e($key) ?>" <?= $cap['figurines'] === $key ? 'checked' : '' ?>> <?= e($label) ?></label>
             <?php endforeach; ?>
+            <h2>Likovi</h2>
+            <label class="check"><input type="checkbox" name="characters" <?= !empty($cap['characters']) ? 'checked' : '' ?>>
+                Radim torte sa likovima iz crtaća i filmova (Betmen, Elsa, Paw Patrol…)</label>
+            <p class="muted">Ako je uključeno, AI prikazuje traženi lik na torti (jestiva slika, topper ili figurica). Ako je isključeno, pravi temu u istim bojama bez lika.</p>
             <label style="margin-top:1rem">Najviše spratova <input type="number" min="1" max="5" name="max_tiers" value="<?= (int)$cap['max_tiers'] ?>"></label>
             <label>Napomena za AI (opciono)
                 <textarea name="notes" rows="3" maxlength="500" placeholder="Npr. ne radimo crnu boju, radimo samo okrugle torte"><?= e($cap['notes']) ?></textarea>
