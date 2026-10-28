@@ -1,0 +1,6 @@
+# Uploadovani fajlovi su samo slike, PHP se ovde nikad ne izvrsava
+<FilesMatch "\.(php|phtml|phar|php\d|pl|py|cgi|sh)$">
+    Require all denied
+</FilesMatch>
+RemoveHandler .php .phtml .phar
+Options -Indexes -ExecCGI

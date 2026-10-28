@@ -1,0 +1,10 @@
+/app/vendor/
+/app/config/config.php
+/app/storage/*
+!/app/storage/.htaccess
+!/app/storage/logs/
+/app/storage/logs/*
+!/app/storage/logs/.gitkeep
+/public/uploads/*
+!/public/uploads/.htaccess
+/build/

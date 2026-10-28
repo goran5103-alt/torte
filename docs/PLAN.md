@@ -1,6 +1,6 @@
 # Plan aplikacije (radni naziv: „Torte")
 
-Status: **predlog za odobrenje**. Ništa se ne pravi dok se plan ne potvrdi.
+Status: plan odobren. **Faza 1a je napravljena** (vidi README.md i docs/UPUTSTVO-HOSTING.md).
 
 ## 1. Odluke koje su donete
 
