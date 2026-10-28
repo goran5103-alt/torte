@@ -55,7 +55,7 @@ U File Manager-u otvorite `app/config/config.php` (Edit) i popunite:
 'images' => [
     'provider' => 'openai',             // 'demo' = bez AI slika
     'openai_api_key' => 'sk-...',       // platform.openai.com → API keys
-    'openai_model' => 'gpt-image-1',
+    'openai_model' => 'gpt-image-2',
     'openai_quality' => 'medium',
     'cost_per_image_usd' => 0.04,
 ],

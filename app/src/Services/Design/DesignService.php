@@ -33,7 +33,7 @@ final class DesignService
         if (Config::get('images.provider') === 'openai' && Config::get('images.openai_api_key')) {
             return new OpenAiImageProvider(
                 (string)Config::get('images.openai_api_key'),
-                (string)Config::get('images.openai_model', 'gpt-image-1'),
+                (string)Config::get('images.openai_model', 'gpt-image-2'),
                 (string)Config::get('images.openai_quality', 'medium'),
                 (float)Config::get('images.cost_per_image_usd', 0.04),
             );

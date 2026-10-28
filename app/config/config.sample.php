@@ -39,7 +39,7 @@ return [
         // demo | openai
         'provider' => 'demo',
         'openai_api_key' => '',
-        'openai_model' => 'gpt-image-1',
+        'openai_model' => 'gpt-image-2',
         'openai_quality' => 'medium',
         // Procena troška po slici (USD), za evidenciju potrošnje
         'cost_per_image_usd' => 0.04,
