@@ -48,6 +48,15 @@ return [
         'cost_per_image_usd' => 0.04,
     ],
 
+    // Claude pogleda svaku AI sliku i proveri da li je torta izvodljiva (potreban anthropic.api_key)
+    'check' => [
+        'enabled' => true,
+        'model' => 'claude-haiku-5-5',
+        // Ispod ove ocene (1–10) slika se crta ponovo, uz ispravke
+        'min_score' => 7,
+        'retries' => 1,
+    ],
+
     'limits' => [
         // Koliko puta jedan kupac može da generiše 6 dizajna
         'sessions_per_client' => 2,

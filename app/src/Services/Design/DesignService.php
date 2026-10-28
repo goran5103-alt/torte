@@ -28,8 +28,14 @@ final class DesignService
         );
     }
 
+    /** Samo za testove: zamena servisa za slike. */
+    public static ?ImageProvider $testProvider = null;
+
     public static function imageProvider(): ImageProvider
     {
+        if (self::$testProvider) {
+            return self::$testProvider;
+        }
         if (Config::get('images.provider') === 'openai' && Config::get('images.openai_api_key')) {
             return new OpenAiImageProvider(
                 (string)Config::get('images.openai_api_key'),
@@ -183,29 +189,91 @@ final class DesignService
         }
 
         $provider = self::imageProvider();
-        try {
+        $checker = self::feasibilityChecker();
+        $capabilities = Shop::settings($shop)['capabilities'];
+        $minScore = (int)Config::get('check.min_score', 7);
+        $maxAttempts = 1 + max(0, (int)Config::get('check.retries', 1));
+        $best = null;
+
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
             try {
-                $image = $provider->generate($design, $request);
-            } catch (\Throwable $first) {
-                // Servis za slike ponekad odbije poznate likove; tada probamo istu tortu sa opštom temom.
-                if (empty($request['characters'])) {
-                    throw $first;
+                $image = self::draw($provider, $design, $request, (int)$shop['id']);
+            } catch (\Throwable $e) {
+                logger('AI slika nije uspela', ['shop' => $shop['id'], 'session' => $session['id'], 'idx' => $idx, 'error' => $e->getMessage()]);
+                if ($best !== null) {
+                    break;
                 }
-                logger('Slika sa likom odbijena, pokušavam opštu temu', ['shop' => $shop['id'], 'error' => $first->getMessage()]);
-                $image = $provider->generate($design, ['generic' => true] + $request);
+                Db::update('design_images', ['status' => 'error', 'error' => mb_substr($e->getMessage(), 0, 500), 'updated_at' => now()], ['id' => $row['id']]);
+                return ['status' => 'error', 'error' => 'Slika nije uspela. Pokušajte ponovo.'];
             }
-            $path = Uploads::saveBytes($image['bytes'], (int)$shop['id'], 'designs/' . date('Y-m'), $image['ext']);
-        } catch (\Throwable $e) {
-            logger('AI slika nije uspela', ['shop' => $shop['id'], 'session' => $session['id'], 'idx' => $idx, 'error' => $e->getMessage()]);
-            Db::update('design_images', ['status' => 'error', 'error' => mb_substr($e->getMessage(), 0, 500), 'updated_at' => now()], ['id' => $row['id']]);
-            return ['status' => 'error', 'error' => 'Slika nije uspela. Pokušajte ponovo.'];
+            Db::run('UPDATE design_sessions SET cost_usd = cost_usd + ? WHERE id = ?', [$image['cost_usd'], $session['id']]);
+            self::logUsage((int)$shop['id'], 'image', $provider->name(), ['model' => $image['model'], 'cost_usd' => $image['cost_usd']]);
+
+            $check = null;
+            $mime = ['png' => 'image/png', 'jpg' => 'image/jpeg', 'webp' => 'image/webp'][$image['ext']] ?? null;
+            if ($checker && $mime) {
+                try {
+                    $check = $checker->check($image['bytes'], $mime, $design, $request, $capabilities);
+                    Db::run('UPDATE design_sessions SET cost_usd = cost_usd + ? WHERE id = ?', [$check['usage']['cost_usd'], $session['id']]);
+                    self::logUsage((int)$shop['id'], 'check', 'claude', $check['usage']);
+                    unset($check['usage']);
+                } catch (\Throwable $e) {
+                    // Provera je dodatak: ako ne uspe, slika ostaje bez ocene.
+                    logger('Provera izvodljivosti nije uspela', ['shop' => $shop['id'], 'error' => $e->getMessage()]);
+                }
+            }
+
+            $score = $check['score'] ?? null;
+            if ($best === null || ($score !== null && $score > ($best['check']['score'] ?? 0))) {
+                $best = ['image' => $image, 'check' => $check, 'attempt' => $attempt];
+            }
+            if ($score === null || $score >= $minScore) {
+                break;
+            }
+            // Slika nije dovoljno izvodljiva: crtamo ponovo uz konkretne ispravke.
+            $design['fixes'] = $check['fixes'] ?? [];
         }
 
-        Db::update('design_images', ['status' => 'done', 'image_path' => $path, 'error' => null, 'updated_at' => now()], ['id' => $row['id']]);
-        Db::run('UPDATE design_sessions SET cost_usd = cost_usd + ? WHERE id = ?', [$image['cost_usd'], $session['id']]);
-        self::logUsage((int)$shop['id'], 'image', $provider->name(), ['model' => $image['model'], 'cost_usd' => $image['cost_usd']]);
+        $path = Uploads::saveBytes($best['image']['bytes'], (int)$shop['id'], 'designs/' . date('Y-m'), $best['image']['ext']);
+        Db::update('design_images', [
+            'status' => 'done',
+            'image_path' => $path,
+            'error' => null,
+            'check_score' => $best['check']['score'] ?? null,
+            'check_result' => $best['check'] ? json_encode($best['check'], JSON_UNESCAPED_UNICODE) : null,
+            'attempts' => $attempt > $maxAttempts ? $maxAttempts : $attempt,
+            'updated_at' => now(),
+        ], ['id' => $row['id']]);
 
         return ['status' => 'done', 'url' => upload_url($path)];
+    }
+
+    /** Jedno crtanje; ako servis odbije poznat lik, ista torta sa opštom temom. */
+    private static function draw(ImageProvider $provider, array $design, array $request, int $shopId): array
+    {
+        try {
+            return $provider->generate($design, $request);
+        } catch (\Throwable $first) {
+            if (empty($request['characters'])) {
+                throw $first;
+            }
+            logger('Slika sa likom odbijena, pokušavam opštu temu', ['shop' => $shopId, 'error' => $first->getMessage()]);
+            return $provider->generate($design, ['generic' => true] + $request);
+        }
+    }
+
+    public static function feasibilityChecker(): ?FeasibilityChecker
+    {
+        $key = (string)Config::get('anthropic.api_key', '');
+        if ($key === '' || !Config::get('check.enabled', true)) {
+            return null;
+        }
+        return new FeasibilityChecker(
+            $key,
+            (string)Config::get('check.model', 'claude-haiku-5-5'),
+            (float)Config::get('check.input_price_per_mtok', 0.10),
+            (float)Config::get('check.output_price_per_mtok', 0.50),
+        );
     }
 
     /** Izabrani dizajn za korpu (provera da pripada kupcu i da je slika gotova). */
@@ -228,6 +296,7 @@ final class DesignService
             'techniques' => $designs[$idx]['techniques'],
             'image_path' => $row['image_path'],
             'request' => $input,
+            'check' => json_decode((string)($row['check_result'] ?? ''), true) ?: null,
         ];
     }
 

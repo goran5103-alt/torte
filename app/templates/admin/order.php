@@ -49,6 +49,13 @@ $intl = str_starts_with($phone, '+') ? $phone : '+381' . ltrim($phone, '0');
                         <?php if (!empty($d['design_request'])): ?><dt>Želja kupca</dt><dd><?= nl2br(e($d['design_request'])) ?></dd><?php endif; ?>
                         <?php if (!empty($d['design_colors'])): ?><dt>Boje</dt><dd><?= e(implode(', ', $d['design_colors'])) ?></dd><?php endif; ?>
                         <?php if (!empty($d['design_techniques'])): ?><dt>Tehnike</dt><dd><?= e(implode(', ', array_map(fn($t) => \App\Shop::TECHNIQUES[$t][0] ?? $t, $d['design_techniques']))) ?></dd><?php endif; ?>
+                        <?php if (!empty($d['design_check'])): $c = $d['design_check']; ?>
+                            <dt>AI provera</dt><dd>
+                                <span class="badge <?= $c['score'] >= 7 ? 'badge-active' : 'badge-u_izradi' ?>">izvodljivost <?= (int)$c['score'] ?>/10</span>
+                                <?php if (!empty($c['note'])): ?><br><?= e($c['note']) ?><?php endif; ?>
+                                <?php if (!empty($c['problems'])): ?><br><small>Na šta paziti: <?= e(implode('; ', $c['problems'])) ?></small><?php endif; ?>
+                            </dd>
+                        <?php endif; ?>
                         <?php if (!empty($d['gallery_code'])): ?><dt>Iz galerije</dt><dd><?= e($d['gallery_code']) ?></dd><?php endif; ?>
                         <?php if (!empty($d['inscription'])): ?><dt>Natpis</dt><dd>„<?= e($d['inscription']) ?>"</dd><?php endif; ?>
                         <?php if (!empty($d['note'])): ?><dt>Napomena</dt><dd><?= nl2br(e($d['note'])) ?></dd><?php endif; ?>

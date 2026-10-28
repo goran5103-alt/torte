@@ -98,6 +98,7 @@ final class OrderService
             'design_request' => $design['request']['description'] ?? ($design['text'] ?? ''),
             'design_colors' => $design['request']['colors'] ?? ($design['colors'] ?? []),
             'gallery_code' => $design['gallery_code'] ?? '',
+            'design_check' => $design['check'] ?? null,
         ];
     }
 

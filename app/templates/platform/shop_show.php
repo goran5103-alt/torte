@@ -70,7 +70,7 @@
                 <table class="table compact">
                     <tr><th>Mesec</th><th>Vrsta</th><th>Broj</th><th>Trošak</th></tr>
                     <?php foreach ($usage as $u): ?>
-                        <tr><td><?= e($u['month']) ?></td><td><?= $u['kind'] === 'briefs' ? 'opisi' : 'slike' ?></td>
+                        <tr><td><?= e($u['month']) ?></td><td><?= ['briefs' => 'opisi', 'image' => 'slike', 'check' => 'provere'][$u['kind']] ?? e($u['kind']) ?></td>
                             <td><?= (int)$u['cnt'] ?></td><td>$<?= number_format((float)$u['cost'], 3) ?></td></tr>
                     <?php endforeach; ?>
                 </table>

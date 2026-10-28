@@ -17,6 +17,9 @@ final class PromptBuilder
             DesignTemplates::composition((string)($design['template'] ?? '')) ? 'Composition: ' . DesignTemplates::composition((string)$design['template']) . '.' : '',
             rtrim(trim((string)($generic ? ($design['image_prompt_generic'] ?? $design['image_prompt']) : $design['image_prompt'])), '.') . '.',
         ];
+        if (!empty($design['fixes'])) {
+            $parts[] = 'Important corrections compared to the previous attempt: ' . implode('; ', array_map('strval', $design['fixes'])) . '.';
+        }
         $inscription = trim((string)($request['inscription'] ?? ''));
         if ($inscription !== '' && mb_strlen($inscription) <= 24) {
             $parts[] = 'The only text on the cake is "' . $inscription . '", spelled exactly like that.';

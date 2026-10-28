@@ -19,6 +19,7 @@
     <div class="stat"><span>$<?= number_format($aiTotal, 2) ?></span>AI trošak ovog meseca</div>
     <div class="stat"><span><?= $aiReady ? 'Claude' : 'demo' ?></span>opisi dizajna</div>
     <div class="stat"><span><?= e($imageProvider) ?></span>slike</div>
+    <div class="stat"><span><?= e($checkModel) ?></span>provera izvodljivosti</div>
 </div>
 
 <?php if (!$shops): ?>

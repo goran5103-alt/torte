@@ -70,6 +70,7 @@ final class PlatformController
             'aiTotal' => array_sum(array_map(fn($s) => (float)$s['ai_cost_month'], $shops)),
             'aiReady' => (bool)Config::get('anthropic.api_key'),
             'imageProvider' => Config::get('images.provider', 'demo'),
+            'checkModel' => Config::get('anthropic.api_key') && Config::get('check.enabled', true) ? Config::get('check.model', 'claude-haiku-5-5') : 'isključena',
         ]);
     }
 
