@@ -228,6 +228,59 @@ final class PlatformController
         redirect('/');
     }
 
+    /** Dijagnostika bez SSH-a: proba Claude, servis za slike i proveru, i prikaže tačnu grešku. */
+    public function testAi(array $p): void
+    {
+        Auth::requireSuperadmin();
+        @set_time_limit(240);
+        $request = ['occasion' => 'decji_rodjendan', 'occasion_label' => 'Dečiji rođendan', 'description' => 'Betmen, crno i žuto',
+            'colors' => ['crna', 'žuta'], 'inscription' => 'Luka', 'characters' => true,
+            'size' => ['name' => 'Srednja', 'weight_kg' => 2.5, 'tiers' => 1, 'shape' => 'okrugla']];
+        $capabilities = Shop::DEFAULTS['capabilities'];
+        $results = [];
+
+        $generator = \App\Services\Design\DesignService::briefGenerator();
+        $t = microtime(true);
+        try {
+            $briefs = $generator->generate($request, $capabilities);
+            $design = $briefs['designs'][0];
+            $results[] = ['Opisi (' . $generator->name() . ')', true, count($briefs['designs']) . ' predloga, prvi: „' . $design['title'] . '"', microtime(true) - $t];
+        } catch (\Throwable $e) {
+            $design = ['template' => 'figurica', 'title' => 'Test', 'image_prompt' => 'Black fondant cake with yellow bats and a Batman figurine on top', 'complexity' => 2, 'techniques' => ['fondan']];
+            $results[] = ['Opisi (' . $generator->name() . ')', false, $e->getMessage(), microtime(true) - $t];
+        }
+
+        $provider = \App\Services\Design\DesignService::imageProvider();
+        $t = microtime(true);
+        $image = null;
+        try {
+            $image = $provider->generate($design, $request);
+            $results[] = ['Slika (' . $provider->name() . ')', true, strlen($image['bytes']) . ' bajtova, ' . $image['ext'], microtime(true) - $t];
+        } catch (\Throwable $e) {
+            $results[] = ['Slika (' . $provider->name() . ')', false, $e->getMessage(), microtime(true) - $t];
+        }
+
+        $checker = \App\Services\Design\DesignService::feasibilityChecker();
+        $mime = $image ? (['png' => 'image/png', 'jpg' => 'image/jpeg', 'webp' => 'image/webp'][$image['ext']] ?? null) : null;
+        if ($checker && $mime) {
+            $t = microtime(true);
+            try {
+                $c = $checker->check($image['bytes'], $mime, $design, $request, $capabilities);
+                $results[] = ['Provera izvodljivosti', true, 'ocena ' . $c['score'] . '/10. ' . $c['note'], microtime(true) - $t];
+            } catch (\Throwable $e) {
+                $results[] = ['Provera izvodljivosti', false, $e->getMessage(), microtime(true) - $t];
+            }
+        } else {
+            $results[] = ['Provera izvodljivosti', null, $checker ? 'preskočeno (nema slike ili je demo crtež)' : 'isključena ili nema Claude ključa', 0];
+        }
+
+        $this->render('test_ai', [
+            'results' => $results,
+            'imageData' => $image && $mime ? 'data:' . $mime . ';base64,' . base64_encode($image['bytes']) : null,
+            'maxTime' => (int)ini_get('max_execution_time'),
+        ]);
+    }
+
     public function robots(array $p): void
     {
         header('Content-Type: text/plain; charset=utf-8');

@@ -122,6 +122,7 @@ final class Kernel
         $r->post('/poslasticarnice/{id}/obrisi', [PlatformController::class, 'deleteShop']);
         $r->get('/poslasticarnice/{id}/udji', [PlatformController::class, 'enterShop']);
         $r->post('/baza/azuriraj', [PlatformController::class, 'migrate']);
+        $r->post('/test-ai', [PlatformController::class, 'testAi']);
         $r->get('/robots.txt', [PlatformController::class, 'robots']);
         $r->get('/install', [PlatformController::class, 'installDone']);
         return $r;

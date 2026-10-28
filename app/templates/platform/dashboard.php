@@ -11,7 +11,13 @@
 
 <div class="page-head">
     <h1>Poslastičarnice</h1>
-    <a class="btn btn-primary" href="/poslasticarnice/nova">+ Nova poslastičarnica</a>
+    <div class="actions">
+        <form method="post" action="/test-ai" class="inline">
+            <?= csrf_field() ?>
+            <button class="btn" title="Proba Claude, servis za slike i proveru izvodljivosti (traje do 2 minuta)">Testiraj AI</button>
+        </form>
+        <a class="btn btn-primary" href="/poslasticarnice/nova">+ Nova poslastičarnica</a>
+    </div>
 </div>
 
 <div class="stats">
