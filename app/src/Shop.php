@@ -32,6 +32,7 @@ final class Shop
         'metalik' => ['Zlatni listići, metalik boja', 'edible gold leaf and metallic paint accents'],
         'kuglice' => ['Čokoladne kuglice i ukrasi', 'chocolate spheres, shards and molded chocolate decorations'],
         'oblik' => ['Oblikovane torte (broj, slovo, srce)', 'cakes cut into simple shapes such as numbers, letters or hearts'],
+        '3d' => ['3D oblikovane torte (auto, lopta, meda…)', 'fully sculpted 3D cakes shaped like objects or characters'],
     ];
 
     public const FIGURINES = [

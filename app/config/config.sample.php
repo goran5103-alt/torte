@@ -36,8 +36,11 @@ return [
     ],
 
     'images' => [
-        // demo | openai
+        // demo | openai | gemini
         'provider' => 'demo',
+        'gemini_api_key' => '',
+        'gemini_model' => 'gemini-2.5-flash-image',
+        'gemini_cost_per_image_usd' => 0.039,
         'openai_api_key' => '',
         'openai_model' => 'gpt-image-2',
         'openai_quality' => 'medium',

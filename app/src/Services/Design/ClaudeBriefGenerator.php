@@ -18,10 +18,13 @@ Hard rules:
 - Every design must have EXACTLY the number of tiers given for the chosen size (a small cake of 1.5 kg cannot become a two-tier cake), and the stated shape. State the tier count explicitly at the start of each image_prompt.
 - Characters: follow the shop's character rule given in SHOP CAPABILITIES. Never add brand logos or club crests the customer did not ask for.
 - Proportions, colors and decorations must be achievable by one skilled pastry chef in a normal workday. No gravity-defying structures, no floating elements, no perfect airbrushed illustrations unless edible print is available.
-- Make the 6 designs clearly different from each other (style, color balance, decoration placement), ranging from simple to more elaborate, while all fitting the customer's wish.
+- Every design must be based on one of the ALLOWED TEMPLATES listed below (the compositions real Serbian pastry shops make). Fill the template with the customer's theme, colors, name and age. Use at least 4 different templates across the 6 designs when possible; include at least one template of complexity 1 and at most two of complexity 3.
+- Make the 6 designs clearly different from each other (template, color balance, decoration placement), ranging from simple to more elaborate, while all fitting the customer's wish. If the customer names a character, show it in every design, each time in a different way (figurine, edible print, scene, wired decorations).
+- Typical style in Serbia: bright, saturated colors; fondant; name in fondant letters on the front; age number on top; sugar pearl borders.
 - Complexity: 1 = simple (smooth coating, few decorations), 2 = medium, 3 = elaborate (many hand-made elements). Include at least two designs of complexity 1 or 2.
 
 Field instructions:
+- template: key of the allowed template used.
 - title: short Serbian name for the design (Latin script, max 5 words).
 - description: 1–2 sentences in Serbian (Latin script) for the customer, describing what the cake will look like.
 - techniques: keys of the shop techniques used.
@@ -49,16 +52,18 @@ TXT;
         if (!$techniqueKeys) {
             $techniqueKeys = ['krem'];
         }
+        $tiers = min((int)($request['size']['tiers'] ?? 1), (int)($capabilities['max_tiers'] ?? 1)) ?: 1;
+        $templates = DesignTemplates::allowed($capabilities, $tiers);
 
         $client = new Client(apiKey: $this->apiKey, requestOptions: ['timeout' => 90.0, 'maxRetries' => 1]);
         $message = $client->beta->messages->create(
             model: $this->model,
             maxTokens: 16000,
             system: self::SYSTEM,
-            messages: [['role' => 'user', 'content' => $this->userPrompt($request, $capabilities, $techniqueKeys)]],
+            messages: [['role' => 'user', 'content' => $this->userPrompt($request, $capabilities, $techniqueKeys, $templates)]],
             outputConfig: [
                 'effort' => $this->effort,
-                'format' => ['type' => 'json_schema', 'schema' => $this->schema($techniqueKeys)],
+                'format' => ['type' => 'json_schema', 'schema' => $this->schema($techniqueKeys, array_keys($templates))],
             ],
             // Ako model odbije zahtev, server ga sam ponovi na preporučenom rezervnom modelu.
             fallbacks: 'default',
@@ -86,6 +91,7 @@ TXT;
         $out = $message->usage->outputTokens;
         return [
             'designs' => array_map(fn($d) => [
+                'template' => (string)($d['template'] ?? ''),
                 'title' => (string)($d['title'] ?? ''),
                 'description' => (string)($d['description'] ?? ''),
                 'techniques' => array_values(array_intersect($techniqueKeys, (array)($d['techniques'] ?? []))),
@@ -102,7 +108,7 @@ TXT;
         ];
     }
 
-    private function userPrompt(array $request, array $capabilities, array $techniqueKeys): string
+    private function userPrompt(array $request, array $capabilities, array $techniqueKeys, array $templates): string
     {
         $techniques = array_map(fn($k) => "- $k: " . Shop::TECHNIQUES[$k][1], $techniqueKeys);
         $figurines = match ($capabilities['figurines'] ?? 'none') {
@@ -131,6 +137,11 @@ TXT;
             $lines[] = 'Notes from the pastry chef: ' . $capabilities['notes'];
         }
         $lines[] = '';
+        $lines[] = 'ALLOWED TEMPLATES (key: composition, complexity)';
+        foreach ($templates as $key => $t) {
+            $lines[] = "- $key: {$t[1]} (complexity {$t[2]})";
+        }
+        $lines[] = '';
         $lines[] = 'CUSTOMER REQUEST';
         $lines[] = 'Occasion: ' . ($request['occasion_label'] ?? '');
         $lines[] = sprintf('Size: %s, about %s kg, EXACTLY %d tier(s), %s shape', $size['name'] ?? '', $size['weight_kg'] ?? '', $tiers, ($size['shape'] ?? 'okrugla') === 'okrugla' ? 'round' : 'square');
@@ -145,7 +156,7 @@ TXT;
         return implode("\n", $lines);
     }
 
-    private function schema(array $techniqueKeys): array
+    private function schema(array $techniqueKeys, array $templateKeys): array
     {
         return [
             'type' => 'object',
@@ -155,6 +166,7 @@ TXT;
                     'items' => [
                         'type' => 'object',
                         'properties' => [
+                            'template' => ['type' => 'string', 'enum' => $templateKeys],
                             'title' => ['type' => 'string'],
                             'description' => ['type' => 'string'],
                             'techniques' => ['type' => 'array', 'items' => ['type' => 'string', 'enum' => $techniqueKeys]],
@@ -162,7 +174,7 @@ TXT;
                             'image_prompt' => ['type' => 'string'],
                             'image_prompt_generic' => ['type' => 'string'],
                         ],
-                        'required' => ['title', 'description', 'techniques', 'complexity', 'image_prompt', 'image_prompt_generic'],
+                        'required' => ['template', 'title', 'description', 'techniques', 'complexity', 'image_prompt', 'image_prompt_generic'],
                         'additionalProperties' => false,
                     ],
                 ],

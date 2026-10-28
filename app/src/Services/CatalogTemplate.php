@@ -37,7 +37,7 @@ final class CatalogTemplate
         ],
         'delivery' => ['enabled' => true, 'fee' => 500, 'note' => 'Dostava na teritoriji Beograda.'],
         'capabilities' => [
-            'techniques' => ['krem', 'fondan', 'drip', 'jestiva_slika', 'topper_papir', 'secerno_cvece', 'voce', 'slatkisi', 'oblik'],
+            'techniques' => ['krem', 'fondan', 'drip', 'jestiva_slika', 'topper_papir', 'secerno_cvece', 'voce', 'slatkisi', 'oblik', '3d'],
             'figurines' => 'detailed',
             'max_tiers' => 3,
             'notes' => 'Radimo i torte sa logom firme, grbom kluba ili jestivom slikom po želji kupca.',

@@ -14,6 +14,7 @@ final class PromptBuilder
         $parts = [
             'Photorealistic product photo of a real handmade celebration cake made by a small local pastry shop.',
             self::structure($request),
+            isset(DesignTemplates::ALL[$design['template'] ?? '']) ? 'Composition: ' . DesignTemplates::ALL[$design['template']][1] . '.' : '',
             rtrim(trim((string)($generic ? ($design['image_prompt_generic'] ?? $design['image_prompt']) : $design['image_prompt'])), '.') . '.',
         ];
         $inscription = trim((string)($request['inscription'] ?? ''));
@@ -27,7 +28,7 @@ final class PromptBuilder
         if ($generic || empty($request['characters'])) {
             $parts[] = 'No logos, no brand names, no copyrighted characters.';
         }
-        return implode(' ', $parts);
+        return implode(' ', array_filter($parts));
     }
 
     /** Broj spratova i oblik iz izabrane veličine, da slika ne obeća veću tortu od poručene. */

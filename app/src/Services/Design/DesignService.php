@@ -38,6 +38,13 @@ final class DesignService
                 (float)Config::get('images.cost_per_image_usd', 0.04),
             );
         }
+        if (Config::get('images.provider') === 'gemini' && Config::get('images.gemini_api_key')) {
+            return new GeminiImageProvider(
+                (string)Config::get('images.gemini_api_key'),
+                (string)Config::get('images.gemini_model', 'gemini-2.5-flash-image'),
+                (float)Config::get('images.gemini_cost_per_image_usd', 0.039),
+            );
+        }
         return new DemoImageProvider();
     }
 
