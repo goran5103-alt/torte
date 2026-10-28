@@ -46,7 +46,7 @@
             <p>Dok wildcard poddomen nije podešen, u DirectAdmin-u:</p>
             <ol class="steps">
                 <li>Subdomain Management → napravite <code><?= e($shop['slug']) ?></code> (za <?= e($mainDomain) ?>).</li>
-                <li>U folder <code>public_html/<?= e($shop['slug']) ?></code> uploadujte <code>index.php</code> i <code>.htaccess</code> iz foldera <code>subdomain-stub</code>.</li>
+                <li>U folderu <code>public_html/<?= e($shop['slug']) ?></code> obrišite <code>index.html</code> i uploadujte <code>index.php</code> i <code>.htaccess</code> iz foldera <code>subdomain-stub</code>.</li>
                 <li>SSL: uključite sertifikat za <code><?= e($shop['slug'] . '.' . $mainDomain) ?></code>.</li>
             </ol>
         </div>

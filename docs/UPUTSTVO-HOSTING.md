@@ -30,7 +30,7 @@ Primer za domen `proba.sbs` i test poslastičarnicu `test.proba.sbs`.
 ## 4. Test poslastičarnica (`test.proba.sbs`)
 
 1. **Poddomen:** Account Manager → Subdomain Management → dodajte `test`. DirectAdmin pravi folder `public_html/test`.
-2. U folder `public_html/test` uploadujte **oba** fajla iz `subdomain-stub`: `index.php` i `.htaccess`. Fajl `.htaccess` je skriven; u File Manager-u uključite prikaz skrivenih fajlova.
+2. U folderu `public_html/test` **obrišite `index.html`** (DirectAdmin ga ubacuje sam, sa tekstom „This is a placeholder for the subdomain…"). Zatim uploadujte **oba** fajla iz `subdomain-stub`: `index.php` i `.htaccess`. Fajl `.htaccess` je skriven; u File Manager-u uključite prikaz skrivenih fajlova.
 3. **SSL** za `test.proba.sbs` (Let's Encrypt, isto kao u koraku 1.3).
 4. Na **https://proba.sbs** kliknite **+ Nova poslastičarnica**:
    - poddomen: `test`
